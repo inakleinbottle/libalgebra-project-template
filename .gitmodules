@@ -1,0 +1,4 @@
+[submodule "extern/libalgebra"]
+	path = extern/libalgebra
+	url = github:terrylyons/libalgebra.git
+	branch = develop
