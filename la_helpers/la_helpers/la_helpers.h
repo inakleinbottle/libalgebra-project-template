@@ -1,6 +1,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <iosfwd>
 
 #include <libalgebra/libalgebra.h>
 #include <libalgebra/alg_types.h>
@@ -28,6 +29,64 @@ template<unsigned Width, unsigned Depth, coefficient_t CType = coefficient_t::DP
 class LibalgebraExampleImpl :
         public LibalgebraExample,
         public alg_types<Depth, Width, CType> {
+
+
+public:
+
+    using my_alg_types = alg_types<Depth, Width, CType>;
+    using TKEY = typename my_alg_types::TENSOR::KEY;
+    using LKEY = typename my_alg_types::LIE::KEY;
+
+    typename my_alg_types::MAPS maps;
+    typename my_alg_types::CBH cbh;
+
+    template <typename... Args>
+    TKEY tensor_key(Args... args) const noexcept
+    {
+        return { alg::LET(args)... };
+    }
+
+    template <typename Left, typename Right>
+    LKEY lie_key(Left left, Right right) const
+    {
+        const alg::hall_basis<Width, Depth> hall_set;
+        return hall_set[{LKEY(left),
+LKEY(right)}];
+    }
+
+    template <typename Letter>
+    LKEY lie_key(Letter letter) const
+    {
+        const alg::hall_basis<Width, Depth> hall_set;
+        return hall_set.keyofletter(alg::LET(letter));
+    }
+
+    template <typename F>
+    typename my_alg_types::TENSOR tensor_from(F fn) const
+    {
+        const auto& tbasis = my_alg_types::TENSOR::basis;
+
+        typename my_alg_types::TENSOR result;
+        for (auto key : tbasis.iterate_keys()) {
+            result.add_scal_prod(key, fn(key));
+        }
+        return result;
+    }
+
+    template <typename F>
+    typename my_alg_types::LIE lie_from(F fn) const
+    {
+        const auto& lbasis = my_alg_types::LIE::basis;
+
+        typename my_alg_types::LIE result;
+        for (auto key : lbasis.iterate_keys()) {
+            result.add_scal_prod(key, fn(key));
+        }
+        return result;
+    }
+
+
+
 };
 
 std::vector<std::unique_ptr<LibalgebraExample>>& get_example_list() noexcept;
@@ -43,6 +102,17 @@ public:
     }
 
 };
+
+template <typename T>
+void show_impl(const char* name, const T& arg)
+{
+    std::cout << name << ": " << arg << '\n';
+}
+
+
+
+
+
 
 } // namespace alghelp
 
@@ -80,3 +150,6 @@ public:
         example_registration_##NAME##_##WIDTH##_##DEPTH##_##CTYPE;      \
                                                                         \
     void LibalgebraExample_##NAME##_##WIDTH##_##DEPTH##_##CTYPE::run()  \
+
+
+#define SHOW(ARG) alghelp::show_impl(#ARG, ARG)

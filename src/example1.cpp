@@ -6,13 +6,11 @@
 
 
 LIBALGEBRA_EXAMPLE(MyTestExample, 5, 5, DPReal) {
-    typename TENSOR::KEY lkey(LET(2));
-    TENSOR lhs(lkey);
-    typename TENSOR::KEY rkey(LET(1));
-    TENSOR rhs(rkey);
+    TENSOR lhs(tensor_key(2));
+    TENSOR rhs(tensor_key(1));
 
     lhs *= 2.0;
     auto result = lhs*rhs;
 
-    std::cout << result << '\n';
+    SHOW(result);
 }
